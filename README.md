@@ -1,80 +1,84 @@
-# 🚀 Progress App - Gerenciador de PDIs
+<h1 align="center">
+  PROGRESS - Sistema de Gestão de PDI 🚀
+</h1>
 
-Este é um sistema completo para gerenciamento de Planos de Desenvolvimento Individual (PDI), dividido em um frontend construído com React e um backend com Node.js.
+<p align="center">
+  Um sistema completo para gestão e acompanhamento de Planos de Desenvolvimento Individual (PDI), construído com React, Vite e Tailwind CSS.
+</p>
 
-## 📁 Estrutura do Projeto
 
-O projeto é um monorepo com duas pastas principais:
+## 🎯 Sobre o Projeto
 
--   `/frontend`: Contém toda a aplicação React criada com Vite.
--   `/backend`: Contém a API Node.js (presumivelmente com Express ou similar).
+**PROGRESS** é uma aplicação web moderna para a gestão de Planos de Desenvolvimento Individual (PDI). A plataforma foi desenhada para permitir que empresas estruturem, acompanhem e impulsionem o crescimento profissional dos seus colaboradores de forma eficiente e organizada.
+
+Atualmente, o projeto funciona com dados simulados (`mock`) armazenados no `localStorage` do navegador, permitindo uma demonstração completa das suas funcionalidades de frontend.
+
+
+## ✨ Funcionalidades Principais
+
+-   📊 **Dashboards por Perfil:** Visões personalizadas para Administradores, Gestores e Colaboradores com métricas e gráficos relevantes.
+-   👥 **Gestão de Usuários (Admin):** Criação, edição e exclusão de usuários, com atribuição de perfis e departamentos.
+-   📋 **Gestão de PDIs:** Criação e acompanhamento de Planos de Desenvolvimento, com definição de objetivos, prazos e prioridades.
+-   💬 **Sistema de Feedback:** Registro de feedbacks construtivos e de reconhecimento, podendo ser associados a um PDI específico.
+-   🤖 **Integração com IA (Gemini):** Funcionalidade para sugerir objetivos de PDI com base no cargo e no título do plano, utilizando a API do Google Gemini.
+-   📱 **Interface Responsiva:** Design que se adapta a diferentes tamanhos de tela.
 
 ## 🛠️ Tecnologias Utilizadas
 
--   **Frontend:**
-    -   React.js
-    -   Vite
-    -   Lucide React (para ícones)
-    -   Recharts (para gráficos)
-    -   Tailwind CSS (para estilização)
--   **Backend:**
-    -   Node.js
-    -   (Presumido) Express.js
+As seguintes ferramentas e tecnologias foram usadas na construção do projeto:
 
-## ⚙️ Pré-requisitos
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Recharts](https://img.shields.io/badge/Recharts-8884d8?style=for-the-badge&logo=recharts&logoColor=white)
+![Lucide React](https://img.shields.io/badge/Lucide-Icons-2dd4bf?style=for-the-badge&logo=lucide&logoColor=white)
 
-Antes de começar, garanta que você tenha o seguinte instalado:
-* [Node.js](https://nodejs.org/en/) (versão 18 ou superior recomendada)
-* `npm` (geralmente instalado junto com o Node.js)
+## 🚀 Como Executar o Projeto
 
-## 📦 Instalação e Configuração
+Siga os passos abaixo para configurar e executar o projeto no seu ambiente local.
 
-Siga os passos abaixo para configurar o ambiente de desenvolvimento.
+### Pré-requisitos
 
-**1. Clone o Repositório:**
-```bash
-git clone <URL_DO_SEU_REPOSITORIO>
-cd <NOME_DA_PASTA_DO_PROJETO>
-```
+-   [Node.js](https://nodejs.org/) (versão 18 ou superior)
+-   `npm` ou outro gerenciador de pacotes (`yarn`, `pnpm`)
 
-**2. Instale as Dependências do Backend:**
-```bash
-cd backend
-npm install
-```
+### Instalação e Execução
 
-**3. Instale as Dependências do Frontend:**
-```bash
-cd ../frontend
-npm install
-```
+1.  **Clone o repositório** (se ainda não o fez):
+    ```bash
+    git clone [https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git](https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git)
+    cd SEU_REPOSITORIO/frontend
+    ```
+    **Nota:** Não se esqueça de substituir `SEU_USUARIO/SEU_REPOSITORIO` pelo link real do seu projeto.
 
-**4. Configure as Variáveis de Ambiente:**
+2.  **Instale as dependências:**
+    Este comando irá ler o `package.json` e instalar todos os pacotes necessários.
+    ```bash
+    npm install
+    ```
 
-No frontend, a aplicação precisa de uma chave de API para a funcionalidade de IA da Gemini.
+3.  **Configure as Variáveis de Ambiente:**
+    Para usar a funcionalidade de sugestão com IA, crie um ficheiro `.env` na pasta `frontend` e adicione a sua chave da API do Google Gemini:
+    ```
+    VITE_GEMINI_API_KEY=SUA_CHAVE_API_AQUI
+    ```
 
--   Na pasta `/frontend`, crie um arquivo chamado `.env`.
--   Adicione sua chave de API da Google a este arquivo:
+4.  **Inicie o servidor de desenvolvimento:**
+    ```bash
+    npm run dev
+    ```
 
-    ```env
-    # /frontend/.env
-    VITE_GEMINI_API_KEY=SUA_CHAVE_DE_API_GERADA_NO_GOOGLE_AI_STUDIO
+5.  Abra o seu navegador e acesse [http://localhost:5173/](http://localhost:5173/) (ou o endereço que aparecer no seu terminal).
 
 
-## ▶️ Executando a Aplicação
 
-Para rodar o projeto, você precisará de **dois terminais abertos** simultaneamente, ambos na raiz do projeto.
 
-**Terminal 1 - Iniciando o Backend:**
-```bash
-cd backend
-npm start
-```
-> Por padrão, o backend deverá rodar em `http://localhost:3001`.
+## 🗺️ Roadmap (Futuras Melhorias)
 
-**Terminal 2 - Iniciando o Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-> A aplicação frontend estará acessível em `http://localhost:5173` (ou outra porta indicada pelo Vite). Abra este endereço no seu navegador.
+-   [ ] **Integração com Backend:** Substituir o `localStorage` por uma API real com banco de dados (Java, PostgreSQL).
+-   [ ] **Autenticação Real:** Implementar sistema de login com JWT (JSON Web Tokens).
+-   [ ] **Testes:** Adicionar testes unitários e de integração (Jest, React Testing Library).
+-   [ ] **Notificações em Tempo Real:** Implementar notificações (ex: novo feedback recebido) usando WebSockets.
+-   [ ] **Deploy:** Configurar pipeline de CI/CD para fazer o deploy da aplicação (Vercel, Netlify).
+
+---
