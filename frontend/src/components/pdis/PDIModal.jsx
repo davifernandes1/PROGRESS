@@ -52,9 +52,9 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         if (formData.objectives.length <= 1) return;
         setFormData(prev => ({ ...prev, objectives: prev.objectives.filter((_, i) => i !== index) }));
     };
-    
+
     const handleAISuggest = async () => {
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY; // Use environment variables
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) {
             addNotification("Chave da API da IA não configurada.", "error");
             return;
@@ -69,15 +69,26 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         const collaborator = users.find(u => u.id === formData.collaboratorId);
         const collaboratorFeedbacks = feedbacks.filter(fb => fb.collaboratorId === formData.collaboratorId).map(fb => `- ${fb.feedbackText}`).join("\n");
 
+        // --- PROMPT MELHORADO ---
         const prompt = `
-            Você é um especialista em desenvolvimento de talentos de TI. Crie um PDI para:
-            - Colaborador: ${collaborator.name}
-            - Cargo: ${collaborator.jobTitle}
-            - Departamento: ${collaborator.department}
-            - Foco Principal (Título do PDI): "${formData.title}"
-            - Feedbacks Anteriores: ${collaboratorFeedbacks || "Nenhum."}
-            
-            Gere uma descrição geral e de 2 a 4 objetivos específicos, acionáveis e mensuráveis, com tipo de atividade e duração estimada em dias. Responda APENAS com o objeto JSON.
+            Você é um Coach de Carreira e especialista em Talentos de TI de classe mundial. Sua missão é criar um PDI inspirador e altamente personalizado.
+
+            **Dados do Colaborador:**
+            - **Nome:** ${collaborator.name}
+            - **Cargo:** ${collaborator.jobTitle}
+            - **Departamento:** ${collaborator.department}
+            - **Objetivo Principal do PDI:** "${formData.title}"
+            - **Feedbacks Anteriores Relevantes:**
+              ${collaboratorFeedbacks || "Nenhum feedback anterior registrado."}
+
+            **Instruções:**
+            1.  **Descrição Geral:** Escreva uma descrição motivacional (2-3 frases) que conecte o objetivo principal do PDI com o crescimento de carreira do colaborador.
+            2.  **Objetivos Específicos:** Crie de 2 a 4 objetivos específicos. Cada objetivo deve ser:
+                - **Acionável e SMART:** Em vez de "Aprender React", sugira "Construir um mini-clone do Trello usando React Hooks avançados e Context API".
+                - **Variado:** Sugira um mix de atividades como cursos online (ex: Alura, Coursera), projetos práticos, leitura de documentação/artigos, e sessões de mentoria.
+                - **Realista:** A duração estimada em dias para cada objetivo deve ser razoável.
+
+            Responda **APENAS** com o objeto JSON, seguindo o schema fornecido, sem nenhum texto introdutório ou final. Seja criativo e evite clichês.
         `;
 
         const pdiSuggestionSchema = {
@@ -101,7 +112,8 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         };
 
         try {
-            const parsedJson = await suggestWithAI(prompt, pdiSuggestionSchema, apiKey);
+            // Chamando a API com uma "temperatura" mais alta para respostas mais criativas
+            const parsedJson = await suggestWithAI(prompt, pdiSuggestionSchema, apiKey, 0.9);
 
             if (parsedJson.suggestedObjectives) {
                 const totalDuration = parsedJson.suggestedObjectives.reduce((sum, obj) => sum + (obj.estimatedDurationDays || 0), 0);
@@ -121,7 +133,7 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
                         estimatedDurationDays: obj.estimatedDurationDays,
                     }))
                 }));
-                addNotification("Sugestões da IA aplicadas!", "success");
+                addNotification("Sugestões da IA aplicadas com sucesso!", "success");
             }
 
         } catch (error) {

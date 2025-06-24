@@ -1,9 +1,10 @@
-export const suggestWithAI = async (prompt, schema, apiKey) => {
+export const suggestWithAI = async (prompt, schema, apiKey, temperature = 0.9) => {
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: schema,
+            temperature: temperature, 
         }
     };
 
