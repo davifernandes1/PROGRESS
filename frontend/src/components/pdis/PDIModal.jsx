@@ -67,36 +67,43 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         setIsAiLoading(true);
 
         const collaborator = users.find(u => u.id === formData.collaboratorId);
-        const collaboratorFeedbacks = feedbacks.filter(fb => fb.collaboratorId === formData.collaboratorId).map(fb => `- ${fb.feedbackText}`).join("\n");
+        const collaboratorFeedbacks = feedbacks.filter(fb => fb.collaboratorId === formData.collaboratorId);
+        
+        const feedbackHistory = collaboratorFeedbacks.length > 0 
+            ? collaboratorFeedbacks.map(fb => `- Tipo: ${fb.type}. Conteúdo: ${fb.feedbackText}`).join("\n")
+            : "Nenhum feedback anterior registrado.";
 
-        // --- PROMPT MELHORADO ---
+        // --- PROMPT COM INSTRUÇÕES DE PRAZO REALISTA ---
         const prompt = `
-            Você é um Coach de Carreira e especialista em Talentos de TI de classe mundial. Sua missão é criar um PDI inspirador e altamente personalizado.
+            **Função:** Você é um Coach de Carreira Sênior e Agile, focado em desenvolvimento rápido e impactante. Sua tarefa é criar um Plano de Desenvolvimento Individual (PDI) conciso e acionável.
 
-            **Dados do Colaborador:**
-            - **Nome:** ${collaborator.name}
-            - **Cargo:** ${collaborator.jobTitle}
-            - **Departamento:** ${collaborator.department}
-            - **Objetivo Principal do PDI:** "${formData.title}"
-            - **Feedbacks Anteriores Relevantes:**
-              ${collaboratorFeedbacks || "Nenhum feedback anterior registrado."}
+            **Contexto:**
+            - Colaborador: ${collaborator.name}
+            - Cargo: ${collaborator.jobTitle}
+            - Objetivo Principal do PDI: "${formData.title}"
+            - Histórico de Feedbacks:
+              ${feedbackHistory}
 
-            **Instruções:**
-            1.  **Descrição Geral:** Escreva uma descrição motivacional (2-3 frases) que conecte o objetivo principal do PDI com o crescimento de carreira do colaborador.
-            2.  **Objetivos Específicos:** Crie de 2 a 4 objetivos específicos. Cada objetivo deve ser:
-                - **Acionável e SMART:** Em vez de "Aprender React", sugira "Construir um mini-clone do Trello usando React Hooks avançados e Context API".
-                - **Variado:** Sugira um mix de atividades como cursos online (ex: Alura, Coursera), projetos práticos, leitura de documentação/artigos, e sessões de mentoria.
-                - **Realista:** A duração estimada em dias para cada objetivo deve ser razoável.
+            **Sua Tarefa:**
+            1.  **Descrição Geral:** Com base em tudo, escreva uma descrição geral (2-3 frases) clara e motivacional para o PDI.
+            2.  **Objetivos:** Crie 2 a 3 objetivos diretos. Para cada objetivo:
+                - **text:** Descreva a meta a ser alcançada de forma específica. NÃO inclua datas ou durações no texto.
+                - **activityType:** Sugira um tipo de atividade prático e relevante (Ex: "Projeto Prático", "Curso Aplicado", "Mentoria Técnica").
+                - **estimatedDurationDays:** Forneça uma estimativa de dias **realista e curta (ex: entre 5 e 30 dias)**. Considere a complexidade da tarefa para um profissional com o cargo de **${collaborator.jobTitle}**. O objetivo é um PDI ágil.
 
-            Responda **APENAS** com o objeto JSON, seguindo o schema fornecido, sem nenhum texto introdutório ou final. Seja criativo e evite clichês.
+            Responda **APENAS** com o objeto JSON, seguindo o schema.
         `;
-
+        
         const pdiSuggestionSchema = {
             type: "OBJECT",
             properties: {
-                suggestedOverallDescription: { type: "STRING" },
+                suggestedOverallDescription: { 
+                    type: "STRING",
+                    description: "A descrição geral e profissional para o PDI."
+                },
                 suggestedObjectives: {
                     type: "ARRAY",
+                    description: "A lista de objetivos sugeridos.",
                     items: {
                         type: "OBJECT",
                         properties: {
@@ -112,28 +119,29 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         };
 
         try {
-            // Chamando a API com uma "temperatura" mais alta para respostas mais criativas
-            const parsedJson = await suggestWithAI(prompt, pdiSuggestionSchema, apiKey, 0.9);
-
+            const parsedJson = await suggestWithAI(prompt, pdiSuggestionSchema, apiKey, 0.8);
+            
             if (parsedJson.suggestedObjectives) {
                 const totalDuration = parsedJson.suggestedObjectives.reduce((sum, obj) => sum + (obj.estimatedDurationDays || 0), 0);
                 const startDate = new Date();
                 const dueDate = new Date();
                 dueDate.setDate(startDate.getDate() + totalDuration);
 
+                const newObjectives = parsedJson.suggestedObjectives.map(obj => ({
+                    ...initialObjective(),
+                    text: obj.text,
+                    activityType: obj.activityType,
+                    estimatedDurationDays: obj.estimatedDurationDays,
+                }));
+
                 setFormData(prev => ({
                     ...prev,
-                    overallDescription: parsedJson.suggestedOverallDescription || prev.overallDescription,
+                    overallDescription: parsedJson.suggestedOverallDescription,
                     startDate: startDate.toISOString().split('T')[0],
                     dueDate: dueDate.toISOString().split('T')[0],
-                    objectives: parsedJson.suggestedObjectives.map(obj => ({
-                        ...initialObjective(),
-                        text: obj.text,
-                        activityType: obj.activityType,
-                        estimatedDurationDays: obj.estimatedDurationDays,
-                    }))
+                    objectives: newObjectives
                 }));
-                addNotification("Sugestões da IA aplicadas com sucesso!", "success");
+                addNotification("PDI preenchido com sugestões da IA!", "success");
             }
 
         } catch (error) {
@@ -187,14 +195,16 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
                     {["Pendente", "Em Andamento", "Concluído", "Atrasado", "Cancelado"].map(s => <option key={s} value={s}>{s}</option>)}
                 </FormField>
                 <div className="md:col-span-2">
-                    <FormField label="Descrição Geral (Contexto)" name="overallDescription" type="textarea" rows={2} value={formData.overallDescription || ''} onChange={handleChange} placeholder="Forneça um contexto geral ou use a IA para gerar..." />
+                    <FormField label="Descrição Geral (Contexto)" name="overallDescription" type="textarea" rows={3} value={formData.overallDescription || ''} onChange={handleChange} placeholder="Forneça um contexto geral ou use a IA para gerar..." />
                 </div>
             </div>
+
             <hr className="my-6" />
+
             <div className="flex justify-between items-center mb-3">
                 <h4 className="text-md font-semibold text-gray-700">Objetivos Específicos do PDI</h4>
                 <Button onClick={handleAISuggest} variant="outline" size="sm" iconLeft={<Brain size={16} />} isLoading={isAiLoading} disabled={isAiLoading || !formData.title || !formData.collaboratorId}>
-                    {isAiLoading ? "Sugerindo..." : "Sugerir com IA"}
+                    {isAiLoading ? "Gerando..." : "Sugerir com IA"}
                 </Button>
             </div>
             <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar mb-4">

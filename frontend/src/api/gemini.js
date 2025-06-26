@@ -1,10 +1,18 @@
+/**
+ * Chama a API do Gemini para gerar conteúdo com base em um prompt e um schema JSON.
+ * @param {string} prompt - O prompt para a IA.
+ * @param {object} schema - O schema JSON que a resposta deve seguir.
+ * @param {string} apiKey - A sua chave da API do Google.
+ * @param {number} temperature - Um valor entre 0 e 1 para controlar a criatividade da resposta.
+ * @returns {Promise<object>} - A resposta JSON parseada da IA.
+ */
 export const suggestWithAI = async (prompt, schema, apiKey, temperature = 0.9) => {
     const payload = {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: schema,
-            temperature: temperature, 
+            temperature: temperature, // Adicionamos o parâmetro de temperatura aqui
         }
     };
 
