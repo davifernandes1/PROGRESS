@@ -1,37 +1,53 @@
-/**
- * Chama a API do Gemini para gerar conteúdo com base em um prompt e um schema JSON.
- * @param {string} prompt - O prompt para a IA.
- * @param {object} schema - O schema JSON que a resposta deve seguir.
- * @param {string} apiKey - A sua chave da API do Google.
- * @param {number} temperature - Um valor entre 0 e 1 para controlar a criatividade da resposta.
- * @returns {Promise<object>} - A resposta JSON parseada da IA.
- */
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 export const suggestWithAI = async (prompt, schema, apiKey, temperature = 0.9) => {
-    const payload = {
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: schema,
-            temperature: temperature, // Adicionamos o parâmetro de temperatura aqui
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    
+    const modelsToTry = [
+        "gemini-2.0-flash",       
+        "gemini-2.5-flash",       
+        "gemini-flash-latest",    
+        "gemini-pro-latest"       
+    ];
+
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+        try {
+            console.log(`Tentando conectar com modelo: ${modelName}...`);
+            
+        
+            const generationConfig = {
+                temperature: temperature,
+                responseMimeType: "application/json", 
+                responseSchema: schema 
+            };
+
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                generationConfig: generationConfig
+            });
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            console.log(`Sucesso com o modelo: ${modelName}`);
+            
+            
+            const cleanText = text.replace(/```json|```/g, '').trim();
+            
+            return JSON.parse(cleanText);
+
+        } catch (error) {
+            console.warn(`Falha ao usar ${modelName}:`, error.message);
+            lastError = error;
+           
         }
-    };
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`Erro da API: ${response.status} - ${errorBody}`);
     }
 
-    const result = await response.json();
-    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!jsonText) {
-        throw new Error("Resposta da IA inválida ou vazia.");
-    }
-
-    return JSON.parse(jsonText);
+   
+    console.error("Todos os modelos falharam. Último erro:", lastError);
+    throw new Error(`Falha na IA. Nenhum modelo disponível respondeu. Verifique o console.`);
 };

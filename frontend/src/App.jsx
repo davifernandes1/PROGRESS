@@ -5,7 +5,7 @@ import { LoadingProvider } from './context/LoadingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ApplicationRoutes } from './routes/AppRouter';
 
-// Importando os arquivos de exportação para facilitar a organização
+
 import './pages/admin';
 import './pages/collaborator';
 import './pages/manager';
