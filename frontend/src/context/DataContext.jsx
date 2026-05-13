@@ -1,45 +1,58 @@
-import React, { createContext, useContext, useEffect } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { initialMockUsers, initialMockPDIs, initialMockFeedbacks } from '../constants';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/axios';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
+    const [users, setUsers] = useState([]);
+    const [pdis, setPdis] = useState([]);
+    const { currentUser } = useAuth();
+
+    const fetchUsers = useCallback(async () => {
+        if (!currentUser || currentUser.profile === 'collaborator') return;
+        try {
+            const res = await api.get('/users');
+            setUsers(res.data);
+        } catch (err) { console.error("Erro ao carregar utilizadores", err); }
+    }, [currentUser]);
+
+    const fetchPdis = useCallback(async () => {
+        if (!currentUser) return;
+        try {
+            const res = await api.get('/pdis');
+            setPdis(res.data);
+        } catch (err) { console.error("Erro ao carregar PDIs", err); }
+    }, [currentUser]);
+
     useEffect(() => {
-        const initStorage = (key, data) => {
-            const storedData = localStorage.getItem(key);
-            if (!storedData || JSON.parse(storedData).length === 0) {
-                localStorage.setItem(key, JSON.stringify(data));
-            }
-        };
-        initStorage('progress_app_users', initialMockUsers);
-        initStorage('progress_app_pdis', initialMockPDIs);
-        initStorage('progress_app_feedbacks', initialMockFeedbacks);
-    }, []);
+        fetchUsers();
+        fetchPdis();
+    }, [fetchUsers, fetchPdis]);
 
-    const [users, setUsers] = useLocalStorage('progress_app_users', initialMockUsers);
-    const [pdis, setPdis] = useLocalStorage('progress_app_pdis', initialMockPDIs);
-    const [feedbacks, setFeedbacks] = useLocalStorage('progress_app_feedbacks', initialMockFeedbacks);
-
-    const addUser = (newUser) => setUsers(prev => [...prev, newUser]);
-    const updateUser = (userId, updatedData) => setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedData } : u));
-    const deleteUser = (userId) => setUsers(prev => prev.filter(u => u.id !== userId));
-
-    const addPdi = (newPdi) => setPdis(prev => [...prev, newPdi]);
-    const updatePdi = (pdiId, updatedData) => setPdis(prev => prev.map(p => p.id === pdiId ? { ...p, ...updatedData } : p));
-    const deletePdi = (pdiId) => setPdis(prev => prev.filter(p => p.id !== pdiId));
-
-    const addFeedback = (newFeedback) => setFeedbacks(prev => [...prev, newFeedback]);
-    const updateFeedback = (feedbackId, updatedData) => setFeedbacks(prev => prev.map(f => f.id === feedbackId ? { ...f, ...updatedData } : f));
-    const deleteFeedback = (feedbackId) => setFeedbacks(prev => prev.filter(f => f.id !== feedbackId));
-
-    const value = {
-        users, addUser, updateUser, deleteUser,
-        pdis, addPdi, updatePdi, deletePdi,
-        feedbacks, addFeedback, updateFeedback, deleteFeedback
+    // Função para Adicionar Utilizador no Banco
+    const addUser = async (userData) => {
+        try {
+            const res = await api.post('/users', userData);
+            setUsers(prev => [...prev, res.data]);
+            return res.data;
+        } catch (err) {
+            throw new Error(err.response?.data?.error || "Erro ao criar utilizador");
+        }
     };
 
-    return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+    const deleteUser = async (userId) => {
+        try {
+            await api.delete(`/users/${userId}`);
+            setUsers(prev => prev.filter(u => u.id !== userId));
+        } catch (err) { console.error("Erro ao apagar", err); }
+    };
+
+    return (
+        <DataContext.Provider value={{ users, pdis, addUser, deleteUser, refreshUsers: fetchUsers }}>
+            {children}
+        </DataContext.Provider>
+    );
 };
 
 export const useData = () => useContext(DataContext);

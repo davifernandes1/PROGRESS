@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
@@ -7,9 +8,7 @@ export const AuthProvider = ({ children }) => {
     const [authToken, setAuthToken] = useState(() => sessionStorage.getItem('authToken'));
 
     const logout = useCallback(() => {
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('currentUser');
-        sessionStorage.removeItem('currentPage');
+        sessionStorage.clear();
         setCurrentUser(null);
         setAuthToken(null);
     }, []);
@@ -18,34 +17,25 @@ export const AuthProvider = ({ children }) => {
         const token = sessionStorage.getItem('authToken');
         const user = sessionStorage.getItem('currentUser');
         if (token && user) {
-            try {
-                setCurrentUser(JSON.parse(user));
-                setAuthToken(token);
-            } catch (error) {
-                console.warn("Falha ao analisar o usuário do sessionStorage", error);
-                logout();
-            }
+            setCurrentUser(JSON.parse(user));
+            setAuthToken(token);
         }
     }, [logout]);
 
     const login = async (email, password) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const allUsers = JSON.parse(localStorage.getItem('progress_app_users') || '[]');
-                const matchedUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-                if (matchedUser && matchedUser.password === password) {
-                    const mockToken = `simulated-jwt-${Date.now()}`;
-                    sessionStorage.setItem('authToken', mockToken);
-                    sessionStorage.setItem('currentUser', JSON.stringify(matchedUser));
-                    setAuthToken(mockToken);
-                    setCurrentUser(matchedUser);
-                    resolve(matchedUser);
-                } else {
-                    reject(new Error('Credenciais inválidas.'));
-                }
-            }, 700);
-        });
+        try {
+            const response = await api.post('/auth/login', { email, password });
+            const { user, token } = response.data;
+            
+            sessionStorage.setItem('authToken', token);
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            
+            setAuthToken(token);
+            setCurrentUser(user);
+            return user;
+        } catch (error) {
+            throw new Error('Credenciais inválidas.');
+        }
     };
 
     return <AuthContext.Provider value={{ currentUser, authToken, login, logout }}>{children}</AuthContext.Provider>;
