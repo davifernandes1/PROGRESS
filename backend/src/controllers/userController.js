@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 // Listar todos os utilizadores (Traduzindo para o formato do Front-end)
 exports.getAllUsers = async (req, res) => {
@@ -25,18 +26,27 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
     const { name, email, password, profile, department, jobTitle, managerId } = req.body;
     try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password || '123456', salt);
+
         const result = await pool.query(
             `INSERT INTO users (name, email, password_hash, role, department, job_title, manager_id) 
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [name, email, password || '123456', profile, department, jobTitle, managerId || null]
+            [name, email, hashedPassword, profile, department, jobTitle, managerId || null]
         );
         
         const newUser = result.rows[0];
+        
+        // CORREÇÃO: O Front-end agora recebe o departamento e o cargo na mesma hora
         res.status(201).json({
             id: newUser.id,
             name: newUser.name,
             email: newUser.email,
             profile: newUser.role,
+            department: newUser.department,      // <-- Adicionado
+            jobTitle: newUser.job_title,         // <-- Adicionado
+            managerId: newUser.manager_id,       // <-- Adicionado
+            createdAt: newUser.created_at,       // <-- Adicionado
             status: 'active'
         });
     } catch (err) {

@@ -27,7 +27,7 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
             } else {
                 setFormData({
                     title: '', overallDescription: '', collaboratorId: '', managerId: '',
-                    status: 'Pendente', priority: 'Média', department: '',
+                    status: 'Não Iniciado', priority: 'Média', department: '',
                     startDate: new Date().toISOString().split('T')[0], dueDate: '',
                     objectives: [initialObjective()]
                 });
@@ -73,7 +73,6 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
             ? collaboratorFeedbacks.map(fb => `- Tipo: ${fb.type}. Conteúdo: ${fb.feedbackText}`).join("\n")
             : "Nenhum feedback anterior registrado.";
 
-        // --- PROMPT COM INSTRUÇÕES DE PRAZO REALISTA ---
         const prompt = `
             **Função:** Você é um Coach de Carreira Sênior e Agile, focado em desenvolvimento rápido e impactante. Sua tarefa é criar um Plano de Desenvolvimento Individual (PDI) conciso e acionável.
 
@@ -97,13 +96,9 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
         const pdiSuggestionSchema = {
             type: "OBJECT",
             properties: {
-                suggestedOverallDescription: { 
-                    type: "STRING",
-                    description: "A descrição geral e profissional para o PDI."
-                },
+                suggestedOverallDescription: { type: "STRING" },
                 suggestedObjectives: {
                     type: "ARRAY",
-                    description: "A lista de objetivos sugeridos.",
                     items: {
                         type: "OBJECT",
                         properties: {
@@ -120,7 +115,6 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
 
         try {
             const parsedJson = await suggestWithAI(prompt, pdiSuggestionSchema, apiKey, 0.8);
-            
             if (parsedJson.suggestedObjectives) {
                 const totalDuration = parsedJson.suggestedObjectives.reduce((sum, obj) => sum + (obj.estimatedDurationDays || 0), 0);
                 const startDate = new Date();
@@ -143,9 +137,7 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
                 }));
                 addNotification("PDI preenchido com sugestões da IA!", "success");
             }
-
         } catch (error) {
-            console.error("Erro ao usar IA:", error);
             addNotification(`Falha ao gerar sugestões: ${error.message}`, "error");
         } finally {
             setIsAiLoading(false);
@@ -158,22 +150,27 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
             return;
         }
         setLoading(true);
-        await new Promise(res => setTimeout(res, 500));
 
         const completedObjs = formData.objectives.filter(o => o.status === 'concluido').length;
         const progress = formData.objectives.length > 0 ? Math.round((completedObjs / formData.objectives.length) * 100) : 0;
-
         const payload = { ...formData, progress };
 
-        if (pdiToEdit) {
-            updatePdi(pdiToEdit.id, payload);
-            addNotification("PDI atualizado com sucesso!", "success");
-        } else {
-            addPdi({ ...payload, id: `pdiSim${Date.now()}` });
-            addNotification("PDI criado com sucesso!", "success");
+        try {
+            if (pdiToEdit) {
+                // AGUARDA a resposta do banco antes de prosseguir
+                await updatePdi(pdiToEdit.id, payload);
+                addNotification("PDI atualizado com sucesso!", "success");
+            } else {
+                // AGUARDA a resposta e não usa um ID falso
+                await addPdi(payload);
+                addNotification("PDI criado com sucesso!", "success");
+            }
+            onClose(); // Só fecha a janela se der tudo certo
+        } catch (err) {
+            addNotification(err.message || "Erro ao salvar PDI. Verifique os dados.", "error");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
-        onClose();
     };
 
     const collaborators = users.filter(u => u.profile === 'collaborator');
@@ -192,7 +189,8 @@ export const PDIModal = ({ isOpen, onClose, pdiToEdit }) => {
                     {managers.map(u => <option key={u.id} value={u.id}>{`${u.name} (${u.jobTitle})`}</option>)}
                 </FormField>
                 <FormField label="Status Geral" name="status" type="select" value={formData.status || ''} onChange={handleChange}>
-                    {["Pendente", "Em Andamento", "Concluído", "Atrasado", "Cancelado"].map(s => <option key={s} value={s}>{s}</option>)}
+                    {/* CORREÇÃO: As opções agora refletem exatamente o que o Banco de Dados aceita */}
+                    {["Não Iniciado", "Em Andamento", "Pausado", "Concluído", "Cancelado"].map(s => <option key={s} value={s}>{s}</option>)}
                 </FormField>
                 <div className="md:col-span-2">
                     <FormField label="Descrição Geral (Contexto)" name="overallDescription" type="textarea" rows={3} value={formData.overallDescription || ''} onChange={handleChange} placeholder="Forneça um contexto geral ou use a IA para gerar..." />

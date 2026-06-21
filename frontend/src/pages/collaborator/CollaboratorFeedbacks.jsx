@@ -1,29 +1,58 @@
 import React from 'react';
-import { MainLayout } from '../../components/ui';
-import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
-import { formatDateTime } from '../../utils/dateUtils';
-import { Archive } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { MainLayout } from '../../components/ui/MainLayout';
+import { MessageSquare, Calendar, User } from 'lucide-react';
 
-export const CollaboratorFeedbacks = ({ setCurrentPage, currentPage }) => {
+export const CollaboratorFeedbacks = () => {
+    const { feedbacks, users } = useData();
     const { currentUser } = useAuth();
-    const { feedbacks, users, pdis } = useData();
-    const myFeedbacks = feedbacks.filter(fb => fb.collaboratorId === currentUser?.id)
-        .map(fb => ({ ...fb, managerName: users.find(u => u.id === fb.managerId)?.name || 'N/A' }));
+
+    const myFeedbacks = feedbacks.filter(f => f.collaboratorId === currentUser.id);
+
+    const getManagerName = (managerId) => {
+        const manager = users.find(u => u.id === managerId);
+        return manager ? manager.name : 'Gestor Desconhecido';
+    };
 
     return (
-        <MainLayout setCurrentPage={setCurrentPage} currentPage={currentPage} pageTitle="Meus Feedbacks Recebidos">
-            <div className="space-y-6">
-                {myFeedbacks.length === 0 ? <div className="text-center py-12 bg-white rounded-lg shadow"><Archive size={48} className="mx-auto text-gray-300 mb-4" /><p className="text-xl text-gray-500">Você ainda não recebeu feedbacks.</p></div> : myFeedbacks.map(fb => (
-                    <div key={fb.id} className="p-6 bg-white rounded-lg shadow-md border border-gray-200">
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-semibold text-gray-800">Feedback de <span className="text-blue-600">{fb.managerName}</span></h3>
-                            <span className="text-sm text-gray-500">{formatDateTime(fb.dateSubmitted)}</span>
-                        </div>
-                        {fb.pdiId && <p className="text-sm text-gray-600 mb-1"><strong>PDI:</strong> {pdis.find(p => p.id === fb.pdiId)?.title}</p>}
-                        <p className="text-gray-700 bg-slate-50 p-3 rounded-md my-2 whitespace-pre-wrap">{fb.feedbackText}</p>
+        <MainLayout title="Meus Feedbacks Recebidos">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {myFeedbacks.length === 0 ? (
+                    <div className="col-span-full bg-white p-10 rounded-xl shadow-sm border text-center text-gray-500">
+                        <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p className="text-lg font-medium">Você ainda não recebeu nenhum feedback.</p>
+                        <p className="text-sm">Eles aparecerão aqui assim que seu gestor registrar uma conversa.</p>
                     </div>
-                ))}
+                ) : (
+                    myFeedbacks.map(feedback => (
+                        <div key={feedback.id} className="bg-white rounded-xl shadow-sm border p-6 flex flex-col h-full hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-4">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                    feedback.type === 'Positivo' ? 'bg-green-100 text-green-700' : 
+                                    feedback.type === 'Construtivo' ? 'bg-yellow-100 text-yellow-700' : 
+                                    'bg-blue-100 text-blue-700'
+                                }`}>
+                                    {feedback.type}
+                                </span>
+                                
+                                <div className="flex items-center text-xs text-gray-400">
+                                    <Calendar size={14} className="mr-1" />
+                                    {new Date(feedback.dateSubmitted || feedback.meetingDate).toLocaleDateString()}
+                                </div>
+                            </div>
+                            
+                            <p className="text-gray-700 text-sm mb-6 flex-grow whitespace-pre-wrap leading-relaxed">
+                                "{feedback.feedbackText}"
+                            </p>
+                            
+                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center text-sm text-gray-600">
+                                <User size={16} className="mr-2 text-gray-400" />
+                                <span>Enviado por: <strong>{getManagerName(feedback.managerId)}</strong></span>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </MainLayout>
     );
