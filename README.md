@@ -1,84 +1,95 @@
-<h1 align="center">
-  PROGRESS - Sistema de Gestão de PDI 🚀
-</h1>
+# 🚀 PROGRESS
 
-<p align="center">
-  Um sistema completo para gestão e acompanhamento de Planos de Desenvolvimento Individual (PDI), construído com React, Vite e Tailwind CSS.
-</p>
+PROGRESS é uma plataforma web em formato desktop-style voltada para a gestão de **Planos de Desenvolvimento Individual (PDIs)** e **Feedbacks** corporativos. O sistema permite que administradores e gestores acompanhem a evolução dos colaboradores, definam metas claras e forneçam avaliações construtivas e de reconhecimento.
 
+O grande diferencial do projeto é a **integração nativa com Inteligência Artificial (Google Gemini)**, que auxilia gestores a gerar automaticamente objetivos e cronogramas de desenvolvimento com base no contexto do PDI.
 
-## 🎯 Sobre o Projeto
-
-**PROGRESS** é uma aplicação web moderna para a gestão de Planos de Desenvolvimento Individual (PDI). A plataforma foi desenhada para permitir que empresas estruturem, acompanhem e impulsionem o crescimento profissional dos seus colaboradores de forma eficiente e organizada.
-
-Atualmente, o projeto funciona com dados simulados (`mock`) armazenados no `localStorage` do navegador, permitindo uma demonstração completa das suas funcionalidades de frontend.
-
-
-## ✨ Funcionalidades Principais
-
--   📊 **Dashboards por Perfil:** Visões personalizadas para Administradores, Gestores e Colaboradores com métricas e gráficos relevantes.
--   👥 **Gestão de Usuários (Admin):** Criação, edição e exclusão de usuários, com atribuição de perfis e departamentos.
--   📋 **Gestão de PDIs:** Criação e acompanhamento de Planos de Desenvolvimento, com definição de objetivos, prazos e prioridades.
--   💬 **Sistema de Feedback:** Registro de feedbacks construtivos e de reconhecimento, podendo ser associados a um PDI específico.
--   🤖 **Integração com IA (Gemini):** Funcionalidade para sugerir objetivos de PDI com base no cargo e no título do plano, utilizando a API do Google Gemini.
--   📱 **Interface Responsiva:** Design que se adapta a diferentes tamanhos de tela.
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-As seguintes ferramentas e tecnologias foram usadas na construção do projeto:
+O projeto foi construído utilizando uma arquitetura Full-Stack moderna:
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Recharts](https://img.shields.io/badge/Recharts-8884d8?style=for-the-badge&logo=recharts&logoColor=white)
-![Lucide React](https://img.shields.io/badge/Lucide-Icons-2dd4bf?style=for-the-badge&logo=lucide&logoColor=white)
+### Front-end
+* **React** (via Vite)
+* **Tailwind CSS** (para estilização rápida e responsiva)
+* **Lucide React** (biblioteca de ícones)
+* Gerenciamento de estado complexo nativo (Context API)
 
-## 🚀 Como Executar o Projeto
-
-Siga os passos abaixo para configurar e executar o projeto no seu ambiente local.
-
-### Pré-requisitos
-
--   [Node.js](https://nodejs.org/) (versão 18 ou superior)
--   `npm` ou outro gerenciador de pacotes (`yarn`, `pnpm`)
-
-### Instalação e Execução
-
-1.  **Clone o repositório** (se ainda não o fez):
-    ```bash
-    git clone [https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git](https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git)
-    cd SEU_REPOSITORIO/frontend
-    ```
-    **Nota:** Não se esqueça de substituir `SEU_USUARIO/SEU_REPOSITORIO` pelo link real do seu projeto.
-
-2.  **Instale as dependências:**
-    Este comando irá ler o `package.json` e instalar todos os pacotes necessários.
-    ```bash
-    npm install
-    ```
-
-3.  **Configure as Variáveis de Ambiente:**
-    Para usar a funcionalidade de sugestão com IA, crie um ficheiro `.env` na pasta `frontend` e adicione a sua chave da API do Google Gemini:
-    ```
-    VITE_GEMINI_API_KEY=SUA_CHAVE_API_AQUI
-    ```
-
-4.  **Inicie o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-
-5.  Abra o seu navegador e acesse [http://localhost:5173/](http://localhost:5173/) (ou o endereço que aparecer no seu terminal).
-
-
-
-
-## 🗺️ Roadmap (Futuras Melhorias)
-
--   [ ] **Integração com Backend:** Substituir o `localStorage` por uma API real com banco de dados (Java, PostgreSQL).
--   [ ] **Autenticação Real:** Implementar sistema de login com JWT (JSON Web Tokens).
--   [ ] **Testes:** Adicionar testes unitários e de integração (Jest, React Testing Library).
--   [ ] **Notificações em Tempo Real:** Implementar notificações (ex: novo feedback recebido) usando WebSockets.
--   [ ] **Deploy:** Configurar pipeline de CI/CD para fazer o deploy da aplicação (Vercel, Netlify).
+### Back-end & Banco de Dados
+* **Node.js** com **Express** (API RESTful)
+* **Supabase / PostgreSQL** (Persistência de dados relacional e autenticação)
+* **Google Gemini API** (Integração operacional para geração de sugestões inteligentes)
 
 ---
+
+## ⚙️ Pré-requisitos
+
+Antes de iniciar, certifique-se de que possui as seguintes ferramentas instaladas na sua máquina:
+* [Node.js](https://nodejs.org/) (Versão 18 ou superior)
+* [Git](https://git-scm.com/)
+* Uma conta no [Supabase](https://supabase.com/) para o banco de dados
+* Uma chave de API gratuita do [Google AI Studio](https://aistudio.google.com/)
+
+---
+
+## 🚀 Como Iniciar o Projeto Localmente
+
+O projeto está dividido em duas pastas principais: `frontend` e `backend`. É necessário configurar e rodar ambas simultaneamente.
+
+### 1. Clonar o Repositório
+
+git clone https://github.com/seu-usuario/progress.git
+cd progress
+
+
+### 2. Configurar o Back-end
+Abra um terminal e aceda à pasta do servidor:
+
+cd backend
+npm install
+
+
+Crie um ficheiro `.env` na raiz da pasta `backend` e adicione as suas credenciais:
+
+PORT=3000
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_KEY=sua_chave_anon_do_supabase
+GEMINI_API_KEY=sua_chave_gratuita_do_gemini
+
+
+Inicie o servidor de desenvolvimento:
+
+npm run dev
+
+*(O servidor estará a rodar em `http://localhost:3000`)*
+
+### 3. Configurar o Front-end
+Abra um **novo terminal** (mantenha o do back-end a rodar) e aceda à pasta do cliente:
+
+cd frontend
+npm install
+
+
+Crie um ficheiro `.env` na raiz da pasta `frontend` com as seguintes variáveis:
+
+VITE_API_URL=http://localhost:3000/api
+VITE_GEMINI_API_KEY=sua_chave_gratuita_do_gemini
+
+
+Inicie a aplicação React:
+
+npm run dev
+
+*(A aplicação estará acessível no navegador, geralmente em `http://localhost:5173`)*
+
+---
+
+## 🧠 Funcionalidades Principais
+
+* **Dashboard Interativo:** Visão geral rápida do progresso dos colaboradores e pendências.
+* **Gestão de PDIs:** Criação, edição e acompanhamento de planos de desenvolvimento.
+* **Sugestões com IA:** Geração automática de metas e estimativas de tempo para PDIs utilizando a API do Gemini.
+* **Sistema de Feedbacks:** Envio e recebimento de feedbacks (Reconhecimento, Construtivo, Orientação).
+* **Painel do Colaborador:** Área dedicada para o funcionário visualizar as suas próprias metas, atualizar o seu progresso (checklists) e ler os seus feedbacks.
+* **Navegação Desktop-style:** Transição fluida entre telas sem recarregamento da página (Single Page Application otimizada).
