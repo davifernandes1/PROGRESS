@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { MainLayout } from '../../components/ui/MainLayout';
 import { MessageSquare, Calendar, User } from 'lucide-react';
 
-export const CollaboratorFeedbacks = () => {
+// 1. ADICIONADO: Receber setCurrentPage e currentPage
+export const CollaboratorFeedbacks = ({ setCurrentPage, currentPage }) => {
     const { feedbacks, users } = useData();
     const { currentUser } = useAuth();
 
@@ -16,7 +17,12 @@ export const CollaboratorFeedbacks = () => {
     };
 
     return (
-        <MainLayout title="Meus Feedbacks Recebidos">
+        // 2. ADICIONADO: Repassar as funções de navegação e corrigir para pageTitle
+        <MainLayout 
+            pageTitle="Meus Feedbacks Recebidos"
+            setCurrentPage={setCurrentPage}
+            currentPage={currentPage}
+        >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {myFeedbacks.length === 0 ? (
                     <div className="col-span-full bg-white p-10 rounded-xl shadow-sm border text-center text-gray-500">

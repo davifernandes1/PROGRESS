@@ -5,19 +5,18 @@ import { useNotification } from '../../context/NotificationContext';
 import { MainLayout } from '../../components/ui/MainLayout';
 import { CheckCircle, Clock, Target, Calendar } from 'lucide-react';
 
-export const CollaboratorPDIs = () => {
+// CORREÇÃO 1: Adicionado setCurrentPage e currentPage
+export const CollaboratorPDIs = ({ setCurrentPage, currentPage }) => {
     const { pdis, updatePdi } = useData();
     const { currentUser } = useAuth();
     const { addNotification } = useNotification();
     const [loadingId, setLoadingId] = useState(null);
 
-    // Filtra apenas os PDIs deste colaborador
     const myPdis = pdis.filter(p => p.collaboratorId === currentUser.id);
 
     const handleToggleObjective = async (pdi, objectiveId) => {
         setLoadingId(pdi.id);
         try {
-            // Atualiza o status do objetivo selecionado
             const updatedObjectives = pdi.objectives.map(obj => {
                 if (obj.id === objectiveId) {
                     return { ...obj, status: obj.status === 'concluido' ? 'pendente' : 'concluido' };
@@ -25,17 +24,14 @@ export const CollaboratorPDIs = () => {
                 return obj;
             });
 
-            // Recalcula o progresso
             const completedCount = updatedObjectives.filter(o => o.status === 'concluido').length;
             const total = updatedObjectives.length;
             const newProgress = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
-            // Prepara os dados para o Backend
             const updatedPdi = {
                 ...pdi,
                 objectives: updatedObjectives,
                 progress: newProgress,
-                // Se chegou a 100%, muda o status geral automaticamente para Concluído
                 status: newProgress === 100 ? 'Concluído' : pdi.status === 'Não Iniciado' && newProgress > 0 ? 'Em Andamento' : pdi.status
             };
 
@@ -59,7 +55,12 @@ export const CollaboratorPDIs = () => {
     };
 
     return (
-        <MainLayout title="Meus Planos de Desenvolvimento">
+        // CORREÇÃO 2: Passagem das propriedades para o MainLayout
+        <MainLayout 
+            pageTitle="Meus Planos de Desenvolvimento"
+            setCurrentPage={setCurrentPage}
+            currentPage={currentPage}
+        >
             <div className="space-y-6">
                 {myPdis.length === 0 ? (
                     <div className="bg-white p-10 rounded-xl shadow-sm border text-center text-gray-500">
@@ -69,9 +70,8 @@ export const CollaboratorPDIs = () => {
                     </div>
                 ) : (
                     myPdis.map(pdi => (
-                        <div key={pdi.id} className={`bg-white rounded-xl shadow-sm border p-6 transition-all ${loadingId === pdi.id ? 'opacity-70' : ''}`}>
+                        <div key={pdi.id} className={`bg-white rounded-xl shadow-sm border p-6 transition-all ${loadingId === pdi.id ? 'opacity-70 pointer-events-none' : ''}`}>
                             
-                            {/* Cabeçalho do PDI */}
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">{pdi.title}</h3>
@@ -85,14 +85,12 @@ export const CollaboratorPDIs = () => {
                                 </div>
                             </div>
 
-                            {/* Descrição Geral */}
                             {pdi.overallDescription && (
                                 <p className="text-gray-600 mb-6 bg-slate-50 p-4 rounded-lg text-sm border-l-4 border-blue-500">
                                     {pdi.overallDescription}
                                 </p>
                             )}
 
-                            {/* Barra de Progresso */}
                             <div className="mb-6">
                                 <div className="flex justify-between text-sm mb-1">
                                     <span className="font-medium text-gray-700">Progresso Geral</span>
@@ -103,7 +101,6 @@ export const CollaboratorPDIs = () => {
                                 </div>
                             </div>
 
-                            {/* Lista de Objetivos */}
                             <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
                                 <CheckCircle size={18} className="mr-2 text-gray-400" /> 
                                 Minhas Metas e Objetivos
